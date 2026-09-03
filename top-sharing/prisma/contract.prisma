@@ -1,0 +1,23 @@
+// use prisma-next
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
+
+model GooseDbVersion {
+  id        Int       @id(map: "goose_db_version_pkey") @default(autoincrement())
+  versionId BigInt    @map("version_id")
+  isApplied Boolean   @map("is_applied")
+  tstamp    Timestamp @default(now())
+
+  @@map("goose_db_version")
+}
+
+model Users {
+  id          Uuid      @id(map: "users_pkey")
+  createdAt   Timestamp @map("created_at")
+  updatedAt   Timestamp @map("updated_at")
+  name        String    @unique(map: "users_name_key")
+  password    String
+  email       String
+  streamToken String    @map("stream_token")
+
+  @@map("users")
+}

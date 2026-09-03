@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-export default function WhipWhepPlayer() {
+interface WhipWhepPlayerProps {
+  username: string;
+}
+
+export default function WhipWhepPlayer({ username }: WhipWhepPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [statsText, setStatsText] = useState('A aguardar estatísticas...');
   const [iceStates, setIceStates] = useState<string[]>([]);
@@ -35,7 +39,7 @@ export default function WhipWhepPlayer() {
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
 
-      const response = await fetch(`http://192.168.0.111:8080/whep/1`, {
+      const response = await fetch(`http://192.168.0.111:8080/whep/${username}`, {
         method: 'POST',
         body: offer.sdp,
         headers: {
@@ -113,20 +117,22 @@ export default function WhipWhepPlayer() {
       const stats = await pc.getStats();
       let text = '';
 
-      stats.forEach((report: any) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+      stats.forEach((report: RTCStats) => {
+        if (report.type === 'inbound-rtp') {
+          const inboundReport = report as RTCInboundRtpStreamStats;
+          if (inboundReport.kind !== 'video') return;
           const now = Date.now();
-          const bytes = report.bytesReceived;
+          const bytes = inboundReport.bytesReceived ?? 0;
           const bitrate = (8 * (bytes - lastBytesReceived) / ((now - lastTimestamp) / 1000)) / 1000;
 
           lastBytesReceived = bytes;
           lastTimestamp = now;
 
-          text += `Resolução: ${report.frameWidth}x${report.frameHeight} px<br>`;
-          text += `FPS: ${report.framesPerSecond || 0}<br>`;
+          text += `Resolução: ${inboundReport.frameWidth}x${inboundReport.frameHeight} px<br>`;
+          text += `FPS: ${inboundReport.framesPerSecond || 0}<br>`;
           text += `Bitrate: ${bitrate.toFixed(2)} kbps<br>`;
-          text += `Pacotes perdidos: ${report.packetsLost || 0}<br>`;
-          text += `Codec ID: ${report.codecId || 'N/A'}<br>`;
+          text += `Pacotes perdidos: ${inboundReport.packetsLost || 0}<br>`;
+          text += `Codec ID: ${inboundReport.codecId || 'N/A'}<br>`;
         }
       });
 
@@ -142,10 +148,10 @@ export default function WhipWhepPlayer() {
     <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>whip-whep</h1>
       <div>
-        <button onClick={doWHIP} style={{ marginRight: '10px', padding: '8px 16px' }}>
+        <button onClick={doWHIP} className="bg-red-700 hover:bg-red-950 text-white font-bold py-2 px-4 rounded" style={{ marginRight: '10px', padding: '8px 16px' }}>
           Publish
         </button>
-        <button onClick={doWHEP} style={{ padding: '8px 16px' }}>
+        <button onClick={doWHEP} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style={{ padding: '8px 16px' }}>
           Subscribe
         </button>
       </div>
