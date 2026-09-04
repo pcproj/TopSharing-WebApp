@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 
 interface WhipWhepPlayerProps {
   username: string;
+  streamToken: string;
 }
 
-export default function WhipWhepPlayer({ username }: WhipWhepPlayerProps) {
+export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [statsText, setStatsText] = useState('A aguardar estatísticas...');
   const [iceStates, setIceStates] = useState<string[]>([]);
@@ -43,7 +44,7 @@ export default function WhipWhepPlayer({ username }: WhipWhepPlayerProps) {
         method: 'POST',
         body: offer.sdp,
         headers: {
-          Authorization: `Bearer none`,
+          Authorization: `Bearer ${streamToken}`,
           'Content-Type': 'application/sdp',
         },
       });
