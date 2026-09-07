@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'284e79c49c4bcc3e46b63b0a3091c02797ac309cda1e5757eef62270934ef100'>;
+  StorageHashBase<'fa7c8ec42da319045ac0b3bc6170a4237553791e9705d932e19f89480155b659'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -240,6 +240,12 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
+    readonly FriendList: {
+      readonly userId: CodecTypes['pg/uuid@1']['output'];
+      readonly friendId: CodecTypes['pg/uuid@1']['output'];
+      readonly status: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamp-temporal@1']['output'];
+    };
     readonly GooseDbVersion: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly versionId: CodecTypes['pg/int8@1']['output'];
@@ -259,6 +265,12 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
+    readonly FriendList: {
+      readonly userId: CodecTypes['pg/uuid@1']['input'];
+      readonly friendId: CodecTypes['pg/uuid@1']['input'];
+      readonly status: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamp-temporal@1']['input'];
+    };
     readonly GooseDbVersion: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly versionId: CodecTypes['pg/int8@1']['input'];
@@ -278,6 +290,12 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
+    readonly friend_list: {
+      readonly created_at: CodecTypes['pg/timestamp-temporal@1']['output'];
+      readonly friend_id: CodecTypes['pg/uuid@1']['output'];
+      readonly status: CodecTypes['pg/text@1']['output'] | null;
+      readonly user_id: CodecTypes['pg/uuid@1']['output'];
+    };
     readonly goose_db_version: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly is_applied: CodecTypes['pg/bool@1']['output'];
@@ -297,6 +315,12 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
+    readonly friend_list: {
+      readonly created_at: CodecTypes['pg/timestamp-temporal@1']['input'];
+      readonly friend_id: CodecTypes['pg/uuid@1']['input'];
+      readonly status: CodecTypes['pg/text@1']['input'] | null;
+      readonly user_id: CodecTypes['pg/uuid@1']['input'];
+    };
     readonly goose_db_version: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly is_applied: CodecTypes['pg/bool@1']['input'];
@@ -332,6 +356,68 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly friend_list: {
+              columns: {
+                readonly user_id: {
+                  readonly nativeType: 'uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                };
+                readonly friend_id: {
+                  readonly nativeType: 'uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                };
+                readonly status: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'pending'>;
+                  };
+                };
+                readonly created_at: {
+                  readonly nativeType: 'timestamp';
+                  readonly codecId: 'pg/timestamp-temporal@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: {
+                readonly columns: readonly ['user_id', 'friend_id'];
+                readonly name: 'friend_list_pkey';
+              };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'friend_list';
+                    readonly columns: readonly ['friend_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'friend_list_friend_id_fkey';
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'friend_list';
+                    readonly columns: readonly ['user_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'friend_list_user_id_fkey';
+                },
+              ];
+            };
             readonly goose_db_version: {
               columns: {
                 readonly id: {
@@ -424,16 +510,77 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly users: { readonly namespace: 'public' & NamespaceId; readonly model: 'Users' };
+    readonly friend_list: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'FriendList';
+    };
     readonly goose_db_version: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GooseDbVersion';
     };
-    readonly users: { readonly namespace: 'public' & NamespaceId; readonly model: 'Users' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly FriendList: {
+            readonly fields: {
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly friendId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly status: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamp-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly friend: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Users';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['friendId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly user: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Users';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'friend_list';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly userId: { readonly column: 'user_id' };
+                readonly friendId: { readonly column: 'friend_id' };
+                readonly status: { readonly column: 'status' };
+                readonly createdAt: { readonly column: 'created_at' };
+              };
+            };
+          };
           readonly GooseDbVersion: {
             readonly fields: {
               readonly id: {
@@ -505,7 +652,30 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly friendLists: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'FriendList';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['friendId'];
+                };
+              };
+              readonly friendListsFriendList: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'FriendList';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'users';
               readonly namespaceId: 'public';

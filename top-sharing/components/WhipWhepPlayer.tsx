@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Button } from './ui/button';
 
 interface WhipWhepPlayerProps {
   username: string;
@@ -11,9 +12,9 @@ export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayer
   const videoRef = useRef<HTMLVideoElement>(null);
   const [statsText, setStatsText] = useState('A aguardar estatísticas...');
   const [iceStates, setIceStates] = useState<string[]>([]);
-
   // Usamos ref para manter a referência ao activePeerConnection sem re-renderizar o componente
   const activePeerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const startedRef = useRef(false);
 
   const appendICEState = (peerConnection: RTCPeerConnection) => {
     peerConnection.oniceconnectionstatechange = () => {
@@ -22,6 +23,9 @@ export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayer
   };
 
   const doWHEP = async () => {
+    if (startedRef.current) return; // evita múltiplos starts
+    startedRef.current = true;
+
     try {
       const peerConnection = new RTCPeerConnection();
       activePeerConnectionRef.current = peerConnection;
@@ -33,7 +37,6 @@ export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayer
       peerConnection.ontrack = (event) => {
         if (videoRef.current) {
           videoRef.current.srcObject = event.streams[0];
-          videoRef.current.play().catch(err => console.log("Erro no autoplay:", err));
         }
       };
 
@@ -61,49 +64,8 @@ export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayer
     } catch (error) {
       console.error("Erro detalhado no WHEP:", error);
       alert("Erro ao subscrever (WHEP): " + error);
+      startedRef.current = false;
     }
-  };
-
-  const doWHIP = () => {
-    const peerConnection = new RTCPeerConnection();
-    activePeerConnectionRef.current = peerConnection;
-    appendICEState(peerConnection);
-
-    navigator.mediaDevices
-      .getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          frameRate: { ideal: 60, max: 60 },
-        },
-        audio: true,
-      })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
-
-        peerConnection.createOffer().then((offer) => {
-          peerConnection.setLocalDescription(offer);
-
-          fetch(`/whip/1`, {
-            method: 'POST',
-            body: offer.sdp,
-            headers: {
-              Authorization: `Bearer none`,
-              'Content-Type': 'application/sdp',
-            },
-          })
-            .then((r) => r.text())
-            .then((answer) => {
-              peerConnection.setRemoteDescription({
-                sdp: answer,
-                type: 'answer',
-              });
-            });
-        });
-      });
   };
 
   // Loop de estatísticas com useEffect
@@ -147,20 +109,15 @@ export default function WhipWhepPlayer({ username, streamToken }: WhipWhepPlayer
 
   return (
     <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>whip-whep</h1>
-      <div>
-        <button onClick={doWHIP} className="bg-red-700 hover:bg-red-950 text-white font-bold py-2 px-4 rounded" style={{ marginRight: '10px', padding: '8px 16px' }}>
-          Publish
-        </button>
-        <button onClick={doWHEP} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style={{ padding: '8px 16px' }}>
-          Subscribe
-        </button>
-      </div>
+      <h1>{username}</h1>
 
       <h3>Video</h3>
       <video
         ref={videoRef}
         autoPlay
+        onClick={() => {
+          doWHEP();
+        }}
         muted
         controls
         style={{ width: '900px', background: '#000' }}

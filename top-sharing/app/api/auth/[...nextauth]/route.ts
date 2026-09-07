@@ -8,19 +8,19 @@ export const authOptions: AuthOptions = {
 		CredentialsProvider({
 			name: "Credentials",
 			credentials: {
-				username: { label: "Username", type: "text" },
+				email: { label: "Email", type: "text" },
 				password: { label: "Password", type: "password" }
 			},
 			async authorize(credentials) {
 				// 1. Validar se os campos foram preenchidos
-				if (!credentials?.username || !credentials?.password) {
+				if (!credentials?.email || !credentials?.password) {
 					throw new Error("Preenche todos os campos");
 				}
-				console.log("Credentials: " + credentials.username)
+				console.log("Credentials: " + credentials.email)
 				// 2. Procurar o utilizador na base de dados
 				// Nota: Garante que usas 'await' se a tua BD for assíncrona
 				try {
-					const user = await db.orm.public.Users.where({ name: credentials.username }).first();
+					const user = await db.orm.public.Users.where({ email: credentials.email }).first();
 					console.log("User: " + user)
 					
 					if (!user) {

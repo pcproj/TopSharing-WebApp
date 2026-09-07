@@ -1,6 +1,32 @@
 // use prisma-next
 // Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
 
+model Users {
+  id                    Uuid         @id(map: "users_pkey")
+  createdAt             Timestamp    @map("created_at")
+  updatedAt             Timestamp    @map("updated_at")
+  name                  String       @unique(map: "users_name_key")
+  password              String
+  email                 String
+  streamToken           String       @map("stream_token")
+  friendLists           FriendList[] @relation(name: "friend_list_friend_id_fkey")
+  friendListsFriendList FriendList[] @relation(name: "friend_list_user_id_fkey")
+
+  @@map("users")
+}
+
+model FriendList {
+  userId    Uuid      @map("user_id")
+  friendId  Uuid      @map("friend_id")
+  status    String?   @default("pending")
+  createdAt Timestamp @map("created_at")
+  friend    Users     @relation(name: "friend_list_friend_id_fkey", fields: [friendId], references: [id], map: "friend_list_friend_id_fkey", index: false)
+  user      Users     @relation(name: "friend_list_user_id_fkey", fields: [userId], references: [id], map: "friend_list_user_id_fkey", index: false)
+
+  @@id([userId, friendId], map: "friend_list_pkey")
+  @@map("friend_list")
+}
+
 model GooseDbVersion {
   id        Int       @id(map: "goose_db_version_pkey") @default(autoincrement())
   versionId BigInt    @map("version_id")
@@ -8,16 +34,4 @@ model GooseDbVersion {
   tstamp    Timestamp @default(now())
 
   @@map("goose_db_version")
-}
-
-model Users {
-  id          Uuid      @id(map: "users_pkey")
-  createdAt   Timestamp @map("created_at")
-  updatedAt   Timestamp @map("updated_at")
-  name        String    @unique(map: "users_name_key")
-  password    String
-  email       String
-  streamToken String    @map("stream_token")
-
-  @@map("users")
 }
