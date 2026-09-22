@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'fa7c8ec42da319045ac0b3bc6170a4237553791e9705d932e19f89480155b659'>;
+  StorageHashBase<'db6c069cc8c589f8feef4969e4be221747d0bccec6b90f35715023e9076c813b'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -261,6 +261,10 @@ export type FieldOutputTypes = {
       readonly email: CodecTypes['pg/text@1']['output'];
       readonly streamToken: CodecTypes['pg/text@1']['output'];
     };
+    readonly UsersPresence: {
+      readonly userId: CodecTypes['pg/uuid@1']['output'];
+      readonly lastSeen: CodecTypes['pg/timestamp-temporal@1']['output'];
+    };
   };
 };
 export type FieldInputTypes = {
@@ -285,6 +289,10 @@ export type FieldInputTypes = {
       readonly password: CodecTypes['pg/text@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'];
       readonly streamToken: CodecTypes['pg/text@1']['input'];
+    };
+    readonly UsersPresence: {
+      readonly userId: CodecTypes['pg/uuid@1']['input'];
+      readonly lastSeen: CodecTypes['pg/timestamp-temporal@1']['input'];
     };
   };
 };
@@ -311,6 +319,10 @@ export type StorageColumnTypes = {
       readonly stream_token: CodecTypes['pg/text@1']['output'];
       readonly updated_at: CodecTypes['pg/timestamp-temporal@1']['output'];
     };
+    readonly users_presence: {
+      readonly last_seen: CodecTypes['pg/timestamp-temporal@1']['output'];
+      readonly user_id: CodecTypes['pg/uuid@1']['output'];
+    };
   };
 };
 export type StorageColumnInputTypes = {
@@ -335,6 +347,10 @@ export type StorageColumnInputTypes = {
       readonly password: CodecTypes['pg/text@1']['input'];
       readonly stream_token: CodecTypes['pg/text@1']['input'];
       readonly updated_at: CodecTypes['pg/timestamp-temporal@1']['input'];
+    };
+    readonly users_presence: {
+      readonly last_seen: CodecTypes['pg/timestamp-temporal@1']['input'];
+      readonly user_id: CodecTypes['pg/uuid@1']['input'];
     };
   };
 };
@@ -499,6 +515,41 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly users_presence: {
+              columns: {
+                readonly user_id: {
+                  readonly nativeType: 'uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                };
+                readonly last_seen: {
+                  readonly nativeType: 'timestamp';
+                  readonly codecId: 'pg/timestamp-temporal@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: {
+                readonly columns: readonly ['user_id'];
+                readonly name: 'users_presence_pkey';
+              };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users_presence';
+                    readonly columns: readonly ['user_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'users_presence_user_id_fkey';
+                },
+              ];
+            };
           };
         };
       };
@@ -518,6 +569,10 @@ type ContractBase = Omit<
     readonly goose_db_version: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GooseDbVersion';
+    };
+    readonly users_presence: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'UsersPresence';
     };
   };
   readonly domain: {
@@ -675,6 +730,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
+              readonly usersPresence: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'UsersPresence';
+                };
+                readonly cardinality: '1:1';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'users';
@@ -687,6 +753,42 @@ type ContractBase = Omit<
                 readonly password: { readonly column: 'password' };
                 readonly email: { readonly column: 'email' };
                 readonly streamToken: { readonly column: 'stream_token' };
+              };
+            };
+          };
+          readonly UsersPresence: {
+            readonly fields: {
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly lastSeen: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamp-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Users';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'users_presence';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly userId: { readonly column: 'user_id' };
+                readonly lastSeen: { readonly column: 'last_seen' };
               };
             };
           };

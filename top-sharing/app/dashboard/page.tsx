@@ -3,44 +3,17 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import FriendList from "@/components/Friendlist";
-import { db } from "@/prisma/db";
-import { or } from "@prisma/orm-postgres/orm-client"
+import { getFriendsWithPresence } from "@/services/friends";
 
 export default async function DashboardPage() {
-  // Obtém a sessão diretamente no servidor
   const session = await getServerSession(authOptions);
 
-  // Se o utilizador não estiver autenticado, redireciona para o login
   if (!session) {
     redirect("/login");
   }
-  const currentUserId = session.user.id;
- 
-  const friendshipRecords = await db.orm.public.FriendList.where((p) =>
-    or(p.userId.eq(currentUserId), p.friendId.eq(currentUserId))
-  ).all();
 
-  const friendIds = friendshipRecords.map((record) =>
-    record.userId === currentUserId ? record.friendId : record.userId
-  );
-
-  const usersData = await db.orm.public.Users.where((u) =>
-    u.id.in(friendIds)
-  ).all();
-
-  const usersMap = new Map(usersData.map((u) => [u.id, u]));
-
-  const formattedFriends = friendshipRecords.map((record) => {
-    const targetFriendId = record.userId === currentUserId ? record.friendId : record.userId;
-
-    const friendProfile = usersMap.get(targetFriendId);
-
-    return {
-      username: friendProfile?.name ? `@${friendProfile.name}` : "@utilizador",
-      avatar: "", // Ajuste para o nome da coluna da foto na sua DB
-      status: "Online",
-    };
-  });
+  // Obtém os amigos e o status iniciais no servidor
+  const formattedFriends = await getFriendsWithPresence(session.user.id);
 
   return (
     <div className="flex flex-wrap justify-center p-2 m-2 gap-2">
@@ -57,8 +30,10 @@ export default async function DashboardPage() {
           </div>
         </div>
       </Card>
+      
       <Card className="min-w-50 bg-background">
-        <FriendList friends={formattedFriends} />
+        {/* Passa como initialFriends para alimentar o state inicial do cliente */}
+        <FriendList initialFriends={formattedFriends} />
       </Card>
     </div>
   );

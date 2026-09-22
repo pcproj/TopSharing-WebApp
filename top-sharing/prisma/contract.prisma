@@ -2,15 +2,16 @@
 // Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
 
 model Users {
-  id                    Uuid         @id(map: "users_pkey")
-  createdAt             Timestamp    @map("created_at")
-  updatedAt             Timestamp    @map("updated_at")
-  name                  String       @unique(map: "users_name_key")
+  id                    Uuid           @id(map: "users_pkey")
+  createdAt             Timestamp      @map("created_at")
+  updatedAt             Timestamp      @map("updated_at")
+  name                  String         @unique(map: "users_name_key")
   password              String
   email                 String
-  streamToken           String       @map("stream_token")
-  friendLists           FriendList[] @relation(name: "friend_list_friend_id_fkey")
-  friendListsFriendList FriendList[] @relation(name: "friend_list_user_id_fkey")
+  streamToken           String         @map("stream_token")
+  usersPresence         UsersPresence?
+  friendLists           FriendList[]   @relation(name: "friend_list_friend_id_fkey")
+  friendListsFriendList FriendList[]   @relation(name: "friend_list_user_id_fkey")
 
   @@map("users")
 }
@@ -34,4 +35,12 @@ model GooseDbVersion {
   tstamp    Timestamp @default(now())
 
   @@map("goose_db_version")
+}
+
+model UsersPresence {
+  userId   Uuid      @id(map: "users_presence_pkey") @map("user_id")
+  lastSeen Timestamp @map("last_seen")
+  user     Users     @relation(fields: [userId], references: [id], map: "users_presence_user_id_fkey")
+
+  @@map("users_presence")
 }

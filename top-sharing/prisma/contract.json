@@ -15,6 +15,10 @@
     "users": {
       "model": "Users",
       "namespace": "public"
+    },
+    "users_presence": {
+      "model": "UsersPresence",
+      "namespace": "public"
     }
   },
   "domain": {
@@ -236,6 +240,21 @@
                   "model": "FriendList",
                   "namespace": "public"
                 }
+              },
+              "usersPresence": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "UsersPresence",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -264,6 +283,53 @@
               },
               "namespaceId": "public",
               "table": "users"
+            }
+          },
+          "UsersPresence": {
+            "fields": {
+              "lastSeen": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamp-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Users",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "lastSeen": {
+                  "column": "last_seen"
+                },
+                "userId": {
+                  "column": "user_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "users_presence"
             }
           }
         }
@@ -443,6 +509,47 @@
                   "name": "users_name_key"
                 }
               ]
+            },
+            "users_presence": {
+              "columns": {
+                "last_seen": {
+                  "codecId": "pg/timestamp-temporal@1",
+                  "nativeType": "timestamp",
+                  "nullable": false
+                },
+                "user_id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "users_presence_user_id_fkey",
+                  "source": {
+                    "columns": [
+                      "user_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users_presence"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "user_id"
+                ],
+                "name": "users_presence_pkey"
+              },
+              "uniques": []
             }
           }
         },
@@ -450,7 +557,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "fa7c8ec42da319045ac0b3bc6170a4237553791e9705d932e19f89480155b659"
+    "storageHash": "db6c069cc8c589f8feef4969e4be221747d0bccec6b90f35715023e9076c813b"
   },
   "capabilities": {
     "postgres": {

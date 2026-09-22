@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/SessionProviders";
 import NavigationBar from "@/components/nav-bar";
+import { PresenceHeartbeat } from "@/components/PresenceHeartbeat";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Providers>
           <NavigationBar />
+          <PresenceHeartbeat />
           {children}
         </Providers>
       </body>
