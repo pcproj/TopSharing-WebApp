@@ -48,7 +48,6 @@ export async function getFriendsWithPresence(currentUserId: string) {
 		const isOnline = lastSeen
 			? Temporal.PlainDateTime.compare(lastSeen, twoMinutesAgo) > 0
 			: false;
-		console.log(isOnline)
 		return {
 			id: targetFriendId,
 			username: friendProfile?.name ? `${friendProfile.name}` : "@utilizador",
